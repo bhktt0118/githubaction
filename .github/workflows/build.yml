@@ -18,20 +18,19 @@ jobs:
       run: |
         git clone https://github.com/ocornut/imgui.git ConnectTool/imgui
 
+    - name: Verify CMakeLists.txt is present
+      run: |
+        echo "Checking for CMakeLists.txt in the root directory:"
+        ls -la CMakeLists.txt || echo "CMakeLists.txt not found in root."
+        # 如果CMakeLists.txt不在根目录，你需要根据实际路径调整后续的cmake命令
+
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y build-essential cmake 
-        sudo apt-get install -y libgl1-mesa-dev libglfw3-dev libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev
-
-    - name: Create build directory
-      run: mkdir -p build
+        sudo apt-get install -y build-essential cmake libgl1-mesa-dev libglfw3-dev libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev
 
     - name: Configure CMake
       run: cmake -B build -DCMAKE_BUILD_TYPE=Release
 
     - name: Build project
       run: cmake --build build --config Release -- -j $(nproc)
-
-    - name: List build artifacts
-      run: ls -la build/
