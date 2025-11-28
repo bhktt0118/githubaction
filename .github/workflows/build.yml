@@ -1,31 +1,43 @@
-name: Debug CMake Issue
+name: Linux Build
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
-  debug-and-build:
+  build-linux:
     runs-on: ubuntu-latest
+    
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-
-    - name: List project structure (关键诊断步骤)
-      run: |
-        echo "=== 当前目录 ==="
-        pwd
-        echo "=== 列出所有文件和目录（包括隐藏的）==="
-        ls -la
-        echo "=== 检查 CMakeLists.txt 是否存在 ==="
-        if [ -f "CMakeLists.txt" ]; then
-          echo "✅ 在根目录找到了 CMakeLists.txt"
-        else
-          echo "❌ 在根目录未找到 CMakeLists.txt"
-        fi
-
+      
     - name: Clone ImGui
       run: |
         git clone https://github.com/ocornut/imgui.git ConnectTool/imgui
 
-    # ... 后续安装依赖和构建步骤可以暂时注释掉，先专注诊断
-    # - name: Install dependencies
-    #   run: ...
+    - name: Debug - List project structure
+      run: |
+        echo "=== 项目根目录内容 ==="
+        ls -la
+        echo "=== ConnectTool 目录内容 ==="
+        ls -la ConnectTool/ || echo "ConnectTool 目录不存在"
+        echo "=== 检查 CMakeLists.txt 的实际位置 ==="
+        find . -name "CMakeLists.txt" -type f
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential cmake 
+        sudo apt-get install -y libgl1-mesa-dev libglfw3-dev libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev
+
+    - name: Configure CMake (从子目录)
+      run: cmake -B build -S ConnectTool -DCMAKE_BUILD_TYPE=Release
+
+    - name: Build project
+      run: cmake --build build --config Release -- -j $(nproc)
+
+    - name: List build artifacts
+      run: ls -la build/
